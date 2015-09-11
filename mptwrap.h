@@ -27,10 +27,13 @@
 #ifndef QMMP_MPT_MPTWRAP_H
 #define QMMP_MPT_MPTWRAP_H
 
+#include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <string>
 #include <vector>
+
+#include <QIODevice>
 
 #include <libopenmpt/libopenmpt.h>
 #include <libopenmpt/libopenmpt_stream_callbacks_file.h>
@@ -51,17 +54,10 @@ class MPTWrap
         InvalidFile() : std::exception() { }
     };
 
-    static const int interp_none = 1;
-    static const int interp_linear = 2;
-    static const int interp_cubic = 4;
-    static const int interp_windowed = 8;
-
-    explicit MPTWrap(std::string);
+    explicit MPTWrap(QIODevice *);
     MPTWrap(const MPTWrap &) = delete;
     MPTWrap &operator=(const MPTWrap &) = delete;
     ~MPTWrap();
-
-    static bool can_play(std::string);
 
     static std::vector<Interpolator> get_interpolators();
     static bool is_valid_interpolator(int);
@@ -91,6 +87,18 @@ class MPTWrap
 
   private:
     std::string copystr(const char *);
+
+    static std::size_t stream_read(void *, void *, std::size_t);
+    static int stream_seek(void *, std::int64_t, int);
+    static std::int64_t stream_tell(void *);
+    static QIODevice *VFS(void *instance) { return reinterpret_cast<QIODevice *>(instance); }
+
+    openmpt_stream_callbacks callbacks = { stream_read, stream_seek, stream_tell };
+
+    static const int interp_none = 1;
+    static const int interp_linear = 2;
+    static const int interp_cubic = 4;
+    static const int interp_windowed = 8;
 
     openmpt_module *mod;
     int duration_;

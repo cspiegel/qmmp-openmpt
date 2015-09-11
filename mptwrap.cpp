@@ -30,28 +30,16 @@
 #include <string>
 #include <vector>
 
+#include <QIODevice>
 #include <QObject>
 
 #include <libopenmpt/libopenmpt.h>
-#include <libopenmpt/libopenmpt_stream_callbacks_file.h>
 
 #include "mptwrap.h"
 
-MPTWrap::MPTWrap(std::string filename)
+MPTWrap::MPTWrap(QIODevice *device) : mod(openmpt_module_create(callbacks, device, openmpt_log_func_silent, NULL, NULL))
 {
-  std::FILE *fp;
-
-  fp = std::fopen(filename.c_str(), "r");
-  if(fp == NULL) throw InvalidFile();
-
-  mod = openmpt_module_create(openmpt_stream_get_file_callbacks(), fp, openmpt_log_func_silent, NULL, NULL);
-  if(mod == NULL)
-  {
-    std::fclose(fp);
-    throw InvalidFile();
-  }
-
-  std::fclose(fp);
+  if(mod == NULL) throw InvalidFile();
 
   openmpt_module_select_subsong(mod, -1);
 
@@ -79,6 +67,40 @@ MPTWrap::MPTWrap(std::string filename)
 MPTWrap::~MPTWrap()
 {
   openmpt_module_destroy(mod);
+}
+
+size_t MPTWrap::stream_read(void *instance, void *buf, std::size_t n)
+{
+  return VFS(instance)->read(reinterpret_cast<char *>(buf), n);
+}
+
+int MPTWrap::stream_seek(void *instance, std::int64_t offset, int whence)
+{
+  qint64 pos;
+
+  if(VFS(instance)->isSequential()) return -1;
+
+  switch(whence)
+  {
+    case OPENMPT_STREAM_SEEK_SET:
+      pos = offset;
+      break;
+    case OPENMPT_STREAM_SEEK_CUR:
+      pos = VFS(instance)->pos() + offset;
+      break;
+    case OPENMPT_STREAM_SEEK_END:
+      pos = VFS(instance)->size() + offset;
+      break;
+    default:
+      return -1;
+  }
+
+  return VFS(instance)->seek(pos) ? 0 : -1;
+}
+
+std::int64_t MPTWrap::stream_tell(void *instance)
+{
+  return VFS(instance)->isSequential() ? -1 : VFS(instance)->pos();
 }
 
 std::string MPTWrap::copystr(const char *src)
@@ -141,24 +163,10 @@ void MPTWrap::set_stereo_separation(int separation)
   }
 }
 
-bool MPTWrap::can_play(std::string filename)
-{
-  try
-  {
-    MPTWrap mpt(filename.c_str());
-    return true;
-  }
-  catch(MPTWrap::InvalidFile)
-  {
-  }
-
-  return false;
-}
-
 std::int64_t MPTWrap::read(void *buf, std::int64_t bufsiz)
 {
   bufsiz /= sizeof(std::int16_t);
-  size_t n;
+  std::size_t n;
 
   n = openmpt_module_read_interleaved_stereo(mod, rate(), bufsiz / channels(), reinterpret_cast<std::int16_t *>(buf));
 

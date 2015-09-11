@@ -24,6 +24,7 @@
  * SUCH DAMAGE.
  */
 
+#include <QFile>
 #include <QHash>
 #include <QLatin1Char>
 #include <QObject>
@@ -38,14 +39,19 @@
 MPTMetaDataModel::MPTMetaDataModel(const QString &path, QObject *parent) :
   MetaDataModel(parent)
 {
-  try
+  QFile file(path);
+
+  if(file.open(QIODevice::ReadOnly))
   {
-    MPTWrap mpt(path.toUtf8().constData());
-    fill_in_audio_properties(mpt);
-    fill_in_descriptions(mpt);
-  }
-  catch(MPTWrap::InvalidFile)
-  {
+    try
+    {
+      MPTWrap mpt(&file);
+      fill_in_audio_properties(mpt);
+      fill_in_descriptions(mpt);
+    }
+    catch(MPTWrap::InvalidFile)
+    {
+    }
   }
 }
 

@@ -29,7 +29,7 @@
 
 #include <memory>
 
-#include <QString>
+#include <QIODevice>
 #include <QtGlobal>
 
 #include <qmmp/decoder.h>
@@ -40,7 +40,7 @@
 class MPTDecoder : public Decoder
 {
   public:
-    explicit MPTDecoder(const QString &);
+    explicit MPTDecoder(QIODevice *);
 
     bool initialize();
     qint64 totalTime();
@@ -51,7 +51,6 @@ class MPTDecoder : public Decoder
   private:
     qint64 copy(char *, qint64);
 
-    QString path;
     std::unique_ptr<MPTWrap> mpt;
     MPTSettings settings;
 };

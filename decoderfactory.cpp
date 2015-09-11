@@ -24,6 +24,7 @@
  * SUCH DAMAGE.
  */
 
+#include <QFile>
 #include <QIODevice>
 #include <QList>
 #include <QMessageBox>
@@ -43,12 +44,22 @@
 
 bool MPTDecoderFactory::supports(const QString &source) const
 {
-  return MPTWrap::can_play(source.toUtf8().constData());
+  QFile file(source);
+
+  return file.open(QIODevice::ReadOnly) && canDecode(&file);
 }
 
-bool MPTDecoderFactory::canDecode(QIODevice *) const
+bool MPTDecoderFactory::canDecode(QIODevice *device) const
 {
-  return false;
+  try
+  {
+    MPTWrap mpt(device);
+    return true;
+  }
+  catch(MPTWrap::InvalidFile)
+  {
+    return false;
+  }
 }
 
 const DecoderProperties MPTDecoderFactory::properties() const
@@ -71,9 +82,9 @@ const DecoderProperties MPTDecoderFactory::properties() const
   return properties;
 }
 
-Decoder *MPTDecoderFactory::create(const QString &path, QIODevice *)
+Decoder *MPTDecoderFactory::create(const QString &, QIODevice *device)
 {
-  return new MPTDecoder(path);
+  return new MPTDecoder(device);
 }
 
 #if QMMP_VERSION_MAJOR == 0 && QMMP_VERSION_MINOR == 8
@@ -83,26 +94,30 @@ QList<FileInfo *> MPTDecoderFactory::createPlayList(const QString &filename, boo
 #endif
 {
   QList<FileInfo *> list;
+  QFile file(filename);
 
-  try
+  if(file.open(QIODevice::ReadOnly))
   {
-    MPTWrap mpt(filename.toUtf8().constData());
-    FileInfo *file_info = new FileInfo(filename);
-
-    file_info->setLength(mpt.duration() / 1000);
-    if(settings.get_use_filename())
+    try
     {
-      file_info->setMetaData(Qmmp::TITLE, filename.section('/', -1));
-    }
-    else if(use_metadata && !mpt.title().empty())
-    {
-      file_info->setMetaData(Qmmp::TITLE, QString::fromStdString(mpt.title()));
-    }
+      MPTWrap mpt(&file);
+      FileInfo *file_info = new FileInfo(filename);
 
-    list << file_info;
-  }
-  catch(MPTWrap::InvalidFile)
-  {
+      file_info->setLength(mpt.duration() / 1000);
+      if(settings.get_use_filename())
+      {
+        file_info->setMetaData(Qmmp::TITLE, filename.section('/', -1));
+      }
+      else if(use_metadata && !mpt.title().empty())
+      {
+        file_info->setMetaData(Qmmp::TITLE, QString::fromStdString(mpt.title()));
+      }
+
+      list << file_info;
+    }
+    catch(MPTWrap::InvalidFile)
+    {
+    }
   }
 
   return list;

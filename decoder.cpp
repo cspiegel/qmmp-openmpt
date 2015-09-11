@@ -35,17 +35,18 @@
 #include "decoder.h"
 #include "mptwrap.h"
 
-MPTDecoder::MPTDecoder(const QString &path)
-        : Decoder(),
-          path(path)
+MPTDecoder::MPTDecoder(QIODevice *device) : Decoder(device)
 {
 }
 
 bool MPTDecoder::initialize()
 {
+  if(!input()) return false;
+  if(!input()->isOpen() && !input()->open(QIODevice::ReadOnly)) return false;
+
   try
   {
-    mpt = std::unique_ptr<MPTWrap>(new MPTWrap(path.toUtf8().constData()));
+    mpt = std::unique_ptr<MPTWrap>(new MPTWrap(input()));
   }
   catch(MPTWrap::InvalidFile)
   {
