@@ -80,8 +80,8 @@ void MPTMetaDataModel::fill_in_audio_properties(MPTWrap &mpt)
 
 void MPTMetaDataModel::fill_in_descriptions(MPTWrap &mpt)
 {
-  ap.insert(tr("Title"), Qt::escape(QString::fromStdString(mpt.title())));
-  ap.insert(tr("Format"), Qt::escape(QString::fromStdString(mpt.format())));
+  ap.insert(tr("Title"), QString::fromStdString(mpt.title()).toHtmlEscaped());
+  ap.insert(tr("Format"), QString::fromStdString(mpt.format()).toHtmlEscaped());
   ap.insert(tr("Patterns"), QString::number(mpt.pattern_count()));
   ap.insert(tr("Channels"), QString::number(mpt.channel_count()));
   ap.insert(tr("Instruments"), QString::number(mpt.instrument_count()));

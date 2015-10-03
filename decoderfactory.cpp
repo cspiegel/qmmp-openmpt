@@ -87,11 +87,7 @@ Decoder *MPTDecoderFactory::create(const QString &, QIODevice *device)
   return new MPTDecoder(device);
 }
 
-#if QMMP_VERSION_MAJOR == 0 && QMMP_VERSION_MINOR == 8
-QList<FileInfo *> MPTDecoderFactory::createPlayList(const QString &filename, bool use_metadata)
-#elif QMMP_VERSION_MAJOR == 0 && QMMP_VERSION_MINOR == 9
 QList<FileInfo *> MPTDecoderFactory::createPlayList(const QString &filename, bool use_metadata, QStringList *)
-#endif
 {
   QList<FileInfo *> list;
   QFile file(filename);
@@ -148,5 +144,3 @@ QTranslator *MPTDecoderFactory::createTranslator(QObject *)
 {
   return nullptr;
 }
-
-Q_EXPORT_PLUGIN2(cas-openmpt, MPTDecoderFactory)
