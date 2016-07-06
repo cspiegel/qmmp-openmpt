@@ -68,12 +68,12 @@ int MPTDecoder::bitrate()
   return mpt->channel_count();
 }
 
-qint64 MPTDecoder::read(char *audio, qint64 max_size)
+qint64 MPTDecoder::read(unsigned char *audio, qint64 max_size)
 {
   mpt->set_interpolator(settings.get_interpolator());
   mpt->set_stereo_separation(settings.get_stereo_separation());
 
-  return mpt->read(reinterpret_cast<unsigned char *>(audio), max_size);
+  return mpt->read(audio, max_size);
 }
 
 void MPTDecoder::seek(qint64 pos)
