@@ -67,17 +67,17 @@ const DecoderProperties MPTDecoderFactory::properties() const
   DecoderProperties properties;
 
   properties.name = tr("OpenMPT Plugin");
-  properties.filters << "*.669" << "*.amf" << "*.dbm" << "*.digi" << "*.emod" << "*.far" << "*.fnk"
-                     << "*.gdm" << "*.gmc" << "*.imf" << "*.ims" << "*.it" << "*.j2b" << "*.liq"
-                     << "*.mdl" << "*.med" << "*.mgt" << "*.mod" << "*.mtm" << "*.ntp" << "*.oct"
-                     << "*.okta" << "*.psm" << "*.ptm" << "*.rad" << "*.rtm" << "*.s3m" << "*.stm"
-                     << "*.ult" << "*.umx" << "*.xm";
   properties.description = tr("OpenMPT Module Files");
   properties.shortName = "cas-openmpt";
   properties.hasAbout = true;
   properties.hasSettings = true;
   properties.noInput = true;
   properties.protocols << "file";
+
+  for(const auto &ext : QString(openmpt_get_supported_extensions()).split(";"))
+  {
+    properties.filters << QString("*.%1").arg(ext);
+  }
 
   return properties;
 }
