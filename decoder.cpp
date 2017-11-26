@@ -58,12 +58,12 @@ bool MPTDecoder::initialize()
   return true;
 }
 
-qint64 MPTDecoder::totalTime()
+qint64 MPTDecoder::totalTime() const
 {
   return mpt->duration();
 }
 
-int MPTDecoder::bitrate()
+int MPTDecoder::bitrate() const
 {
   return mpt->channel_count();
 }
