@@ -39,7 +39,7 @@
 
 MPTWrap::MPTWrap(QIODevice *device)
 {
-  mod = openmpt_module_create(callbacks, device, openmpt_log_func_silent, nullptr, nullptr);
+  mod = openmpt_module_create2(callbacks, device, openmpt_log_func_silent, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
   if(mod == nullptr) throw InvalidFile();
 
   openmpt_module_select_subsong(mod, -1);
