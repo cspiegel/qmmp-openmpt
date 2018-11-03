@@ -42,13 +42,6 @@
 #include "settingsdialog.h"
 #include "mptwrap.h"
 
-bool MPTDecoderFactory::supports(const QString &source) const
-{
-  QFile file(source);
-
-  return file.open(QIODevice::ReadOnly) && canDecode(&file);
-}
-
 bool MPTDecoderFactory::canDecode(QIODevice *device) const
 {
   try
