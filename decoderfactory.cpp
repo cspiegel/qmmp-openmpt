@@ -49,7 +49,7 @@ bool MPTDecoderFactory::canDecode(QIODevice *device) const
     MPTWrap mpt(device);
     return true;
   }
-  catch(MPTWrap::InvalidFile)
+  catch(const MPTWrap::InvalidFile &)
   {
     return false;
   }
@@ -104,7 +104,7 @@ QList<FileInfo *> MPTDecoderFactory::createPlayList(const QString &filename, boo
 
       list << file_info;
     }
-    catch(MPTWrap::InvalidFile)
+    catch(const MPTWrap::InvalidFile &)
     {
     }
   }

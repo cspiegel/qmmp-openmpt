@@ -49,7 +49,7 @@ MPTMetaDataModel::MPTMetaDataModel(const QString &path, QObject *parent) :
       fill_in_audio_properties(mpt);
       fill_in_descriptions(mpt);
     }
-    catch(MPTWrap::InvalidFile)
+    catch(const MPTWrap::InvalidFile &)
     {
     }
   }

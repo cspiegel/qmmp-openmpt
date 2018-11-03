@@ -48,7 +48,7 @@ bool MPTDecoder::initialize()
   {
     mpt = std::unique_ptr<MPTWrap>(new MPTWrap(input()));
   }
-  catch(MPTWrap::InvalidFile)
+  catch(const MPTWrap::InvalidFile &)
   {
     return false;
   }
