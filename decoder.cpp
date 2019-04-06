@@ -53,7 +53,7 @@ bool MPTDecoder::initialize()
     return false;
   }
 
-  configure(mpt->rate(), mpt->channels(), Qmmp::PCM_S16LE);
+  configure(mpt->rate(), mpt->channels(), Qmmp::PCM_FLOAT);
 
   return true;
 }

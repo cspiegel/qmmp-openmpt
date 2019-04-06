@@ -173,12 +173,12 @@ void MPTWrap::set_stereo_separation(int separation)
 
 std::int64_t MPTWrap::read(void *buf, std::int64_t bufsiz)
 {
-  bufsiz /= sizeof(std::int16_t);
+  bufsiz /= sizeof(float) * channels();
   std::size_t n;
 
-  n = openmpt_module_read_interleaved_stereo(mod, rate(), bufsiz / channels(), reinterpret_cast<std::int16_t *>(buf));
+  n = openmpt_module_read_interleaved_float_stereo(mod, rate(), bufsiz, reinterpret_cast<float *>(buf));
 
-  return n * channels() * sizeof(std::int16_t);
+  return n * channels() * sizeof(float);
 }
 
 void MPTWrap::seek(int pos)
