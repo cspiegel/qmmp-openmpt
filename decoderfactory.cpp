@@ -33,7 +33,6 @@
 #include <QTranslator>
 #include <QtPlugin>
 
-#include <qmmp/fileinfo.h>
 #include <qmmp/qmmp.h>
 
 #include "decoderfactory.h"
@@ -55,7 +54,7 @@ bool MPTDecoderFactory::canDecode(QIODevice *device) const
   }
 }
 
-const DecoderProperties MPTDecoderFactory::properties() const
+DecoderProperties MPTDecoderFactory::properties() const
 {
   DecoderProperties properties;
 
@@ -80,41 +79,52 @@ Decoder *MPTDecoderFactory::create(const QString &, QIODevice *device)
   return new MPTDecoder(device);
 }
 
-QList<FileInfo *> MPTDecoderFactory::createPlayList(const QString &filename, bool use_metadata, QStringList *)
+QList<TrackInfo *> MPTDecoderFactory::createPlayList(const QString &filename, TrackInfo::Parts parts, QStringList *)
 {
-  QList<FileInfo *> list;
+  QList<TrackInfo *> list;
   QFile file(filename);
 
-  if(file.open(QIODevice::ReadOnly))
+  if(parts & (TrackInfo::MetaData | TrackInfo::Properties))
   {
-    try
+    if(file.open(QIODevice::ReadOnly))
     {
-      MPTWrap mpt(&file);
-      FileInfo *file_info = new FileInfo(filename);
-
-      file_info->setLength(mpt.duration() / 1000);
-      if(settings.get_use_filename())
+      try
       {
-        file_info->setMetaData(Qmmp::TITLE, filename.section('/', -1));
-      }
-      else if(use_metadata && !mpt.title().empty())
-      {
-        file_info->setMetaData(Qmmp::TITLE, QString::fromStdString(mpt.title()));
-      }
+        MPTWrap mpt(&file);
+        TrackInfo *file_info = new TrackInfo(filename);
 
-      list << file_info;
-    }
-    catch(const MPTWrap::InvalidFile &)
-    {
+        if(parts & TrackInfo::Properties)
+        {
+          file_info->setValue(Qmmp::FORMAT_NAME, QString::fromStdString(mpt.format()));
+          file_info->setDuration(mpt.duration());
+        }
+
+        if(parts & TrackInfo::MetaData)
+        {
+          if(settings.get_use_filename())
+          {
+            file_info->setValue(Qmmp::TITLE, filename.section('/', -1));
+          }
+          else if(!mpt.title().empty())
+          {
+            file_info->setValue(Qmmp::TITLE, QString::fromStdString(mpt.title()));
+          }
+        }
+
+        list << file_info;
+      }
+      catch(const MPTWrap::InvalidFile &)
+      {
+      }
     }
   }
 
   return list;
 }
 
-MetaDataModel *MPTDecoderFactory::createMetaDataModel(const QString &path, QObject *parent)
+MetaDataModel *MPTDecoderFactory::createMetaDataModel(const QString &path, bool)
 {
-  return new MPTMetaDataModel(path, parent);
+  return new MPTMetaDataModel(path);
 }
 
 void MPTDecoderFactory::showSettings(QWidget *parent)
@@ -133,7 +143,7 @@ void MPTDecoderFactory::showAbout(QWidget *parent)
   QMessageBox::about(parent, title, text);
 }
 
-QTranslator *MPTDecoderFactory::createTranslator(QObject *)
+QString MPTDecoderFactory::translation() const
 {
-  return nullptr;
+  return QString(":/cas-openmpt_plugin_");
 }

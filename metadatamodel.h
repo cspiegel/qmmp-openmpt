@@ -37,20 +37,20 @@
 
 class MPTMetaDataModel : public MetaDataModel
 {
-  Q_OBJECT
+  Q_DECLARE_TR_FUNCTIONS(MPTMetaDataModel)
 
   public:
-    MPTMetaDataModel(const QString &, QObject *);
+    MPTMetaDataModel(const QString &);
     ~MPTMetaDataModel();
-    QHash<QString, QString> audioProperties();
-    QHash<QString, QString> descriptions();
+    QList<MetaDataItem> extraProperties() const override;
+    QList<MetaDataItem> descriptions() const override;
 
   private:
-    void fill_in_audio_properties(MPTWrap &);
+    void fill_in_extra_properties(MPTWrap &);
     void fill_in_descriptions(MPTWrap &);
 
-    QHash<QString, QString> ap;
-    QHash<QString, QString> desc;
+    QList<MetaDataItem> ap;
+    QList<MetaDataItem> desc;
 };
 
 #endif

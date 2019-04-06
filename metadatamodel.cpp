@@ -36,8 +36,8 @@
 #include "metadatamodel.h"
 #include "mptwrap.h"
 
-MPTMetaDataModel::MPTMetaDataModel(const QString &path, QObject *parent) :
-  MetaDataModel(parent)
+MPTMetaDataModel::MPTMetaDataModel(const QString &path) :
+  MetaDataModel(true)
 {
   QFile file(path);
 
@@ -46,7 +46,7 @@ MPTMetaDataModel::MPTMetaDataModel(const QString &path, QObject *parent) :
     try
     {
       MPTWrap mpt(&file);
-      fill_in_audio_properties(mpt);
+      fill_in_extra_properties(mpt);
       fill_in_descriptions(mpt);
     }
     catch(const MPTWrap::InvalidFile &)
@@ -55,7 +55,7 @@ MPTMetaDataModel::MPTMetaDataModel(const QString &path, QObject *parent) :
   }
 }
 
-void MPTMetaDataModel::fill_in_audio_properties(MPTWrap &mpt)
+void MPTMetaDataModel::fill_in_extra_properties(MPTWrap &mpt)
 {
   QString text;
 
@@ -63,56 +63,39 @@ void MPTMetaDataModel::fill_in_audio_properties(MPTWrap &mpt)
   {
     text += QString::fromStdString(s) + "\n";
   }
-  desc.insert(tr("Instruments"), text);
+  desc << MetaDataItem(tr("Instruments"), text);
 
   text = "";
   for(const std::string &s : mpt.samples())
   {
     text += QString::fromStdString(s) + "\n";
   }
-  desc.insert(tr("Samples"), text);
+  desc << MetaDataItem(tr("Samples"), text);
 
   if(!mpt.comment().empty())
   {
-    desc.insert(tr("Comment"), QString::fromStdString(mpt.comment()));
+    desc << MetaDataItem(tr("Comment"), QString::fromStdString(mpt.comment()));
   }
 }
 
 void MPTMetaDataModel::fill_in_descriptions(MPTWrap &mpt)
 {
-  ap.insert(tr("Title"), QString::fromStdString(mpt.title()).toHtmlEscaped());
-  ap.insert(tr("Format"), QString::fromStdString(mpt.format()).toHtmlEscaped());
-  ap.insert(tr("Patterns"), QString::number(mpt.pattern_count()));
-  ap.insert(tr("Channels"), QString::number(mpt.channel_count()));
-  ap.insert(tr("Instruments"), QString::number(mpt.instrument_count()));
-  ap.insert(tr("Samples"), QString::number(mpt.sample_count()));
-
-  int duration = mpt.duration() / 1000;
-  if(duration < 60 * 60)
-  {
-    ap.insert(tr("Duration"), QString("%1:%2").
-                                  arg(duration / 60).
-                                  arg(duration % 60, 2, 10, QLatin1Char('0')));
-  }
-  else
-  {
-    ap.insert(tr("Duration"), QString("%1:%2:%3").
-                                  arg(duration / 3600).
-                                  arg((duration / 60) % 60, 2, 10, QLatin1Char('0')).
-                                  arg(duration % 60, 2, 10, QLatin1Char('0')));
-  }
+  ap << MetaDataItem(tr("Patterns"), QString::number(mpt.pattern_count()));
+  ap << MetaDataItem(tr("Channels"), QString::number(mpt.channel_count()));
+  ap << MetaDataItem(tr("Instruments"), QString::number(mpt.instrument_count()));
+  ap << MetaDataItem(tr("Samples"), QString::number(mpt.sample_count()));
 }
 
 MPTMetaDataModel::~MPTMetaDataModel()
 {
 }
 
-QHash<QString, QString> MPTMetaDataModel::audioProperties()
+QList<MetaDataItem> MPTMetaDataModel::extraProperties() const
 {
   return ap;
 }
 
-QHash<QString, QString> MPTMetaDataModel::descriptions()
+QList<MetaDataItem> MPTMetaDataModel::descriptions() const
 {
   return desc;
 }
