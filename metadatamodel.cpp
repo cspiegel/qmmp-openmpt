@@ -58,19 +58,26 @@ MPTMetaDataModel::MPTMetaDataModel(const QString &path) :
 void MPTMetaDataModel::fill_in_extra_properties(MPTWrap &mpt)
 {
   QString text;
+  auto is_empty_string = [](const std::string &s) { return s == ""; };
 
-  for(const std::string &s : mpt.instruments())
+  if(!std::all_of(mpt.instruments().begin(), mpt.instruments().end(), is_empty_string))
   {
-    text += QString::fromStdString(s) + "\n";
+    for(const std::string &s : mpt.instruments())
+    {
+      text += QString::fromStdString(s) + "\n";
+    }
+    desc << MetaDataItem(tr("Instruments"), text);
   }
-  desc << MetaDataItem(tr("Instruments"), text);
 
-  text = "";
-  for(const std::string &s : mpt.samples())
+  if(!std::all_of(mpt.samples().begin(), mpt.samples().end(), is_empty_string))
   {
-    text += QString::fromStdString(s) + "\n";
+    text = "";
+    for(const std::string &s : mpt.samples())
+    {
+      text += QString::fromStdString(s) + "\n";
+    }
+    desc << MetaDataItem(tr("Samples"), text);
   }
-  desc << MetaDataItem(tr("Samples"), text);
 
   if(!mpt.comment().empty())
   {
