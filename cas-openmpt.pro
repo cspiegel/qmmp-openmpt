@@ -3,7 +3,7 @@ HEADERS += decoderfactory.h decoder.h metadatamodel.h settingsdialog.h settings.
 SOURCES += decoder.cpp decoderfactory.cpp metadatamodel.cpp settingsdialog.cpp mptwrap.cpp
 FORMS   += settingsdialog.ui
 
-CONFIG += warn_on plugin link_pkgconfig c++11
+CONFIG += warn_on plugin link_pkgconfig c++14
 
 TEMPLATE = lib
 

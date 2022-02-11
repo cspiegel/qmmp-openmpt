@@ -1,28 +1,26 @@
-/*-
- * Copyright (c) 2015 Chris Spiegel
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
+// Copyright (c) 2015 Chris Spiegel
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+// 1. Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+// OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+// SUCH DAMAGE.
 
 #ifndef QMMP_MPT_MPTWRAP_H
 #define QMMP_MPT_MPTWRAP_H
@@ -30,6 +28,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <exception>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -38,26 +37,19 @@
 #include <libopenmpt/libopenmpt.h>
 #include <libopenmpt/libopenmpt_stream_callbacks_file.h>
 
-class MPTWrap
-{
-  public:
-    struct Interpolator
-    {
-      Interpolator(std::string name, int value) : name(name), value(value) { }
-      std::string name;
-      int value;
+class MPTWrap {
+public:
+    struct Interpolator {
+        Interpolator(const std::string &name, int value) : name(name), value(value) { }
+        std::string name;
+        int value;
     };
 
-    class InvalidFile : public std::exception
-    {
-      public:
-        InvalidFile() : std::exception() { }
-    };
+    class InvalidFile : public std::exception { };
 
     explicit MPTWrap(QIODevice *);
     MPTWrap(const MPTWrap &) = delete;
     MPTWrap &operator=(const MPTWrap &) = delete;
-    ~MPTWrap();
 
     static std::vector<Interpolator> get_interpolators();
     static bool is_valid_interpolator(int);
@@ -74,20 +66,16 @@ class MPTWrap
     int rate() { return 44100; }
     int channels() { return 2; }
     int depth() { return 16; }
-    int duration() { return duration_; }
-    const std::string &title() { return title_; }
-    const std::string &format() { return format_; }
-    int pattern_count() { return pattern_count_; }
-    int channel_count() { return channel_count_; }
-    int instrument_count() { return instrument_count_; }
-    int sample_count() { return sample_count_; }
-    const std::vector<std::string> &instruments() { return instruments_; }
-    const std::vector<std::string> &samples() { return samples_; }
-    const std::string &comment() { return comment_; }
+    int duration() { return m_duration; }
+    const std::string &title() { return m_title; }
+    const std::string &format() { return m_format; }
+    int pattern_count() { return m_pattern_count; }
+    int channel_count() { return m_channel_count; }
+    const std::vector<std::string> &instruments() { return m_instruments; }
+    const std::vector<std::string> &samples() { return m_samples; }
+    const std::string &comment() { return m_comment; }
 
-  private:
-    std::string copystr(const char *);
-
+private:
     static std::size_t stream_read(void *, void *, std::size_t);
     static int stream_seek(void *, std::int64_t, int);
     static std::int64_t stream_tell(void *);
@@ -100,17 +88,15 @@ class MPTWrap
     static const int interp_cubic = 4;
     static const int interp_windowed = 8;
 
-    openmpt_module *mod;
-    int duration_;
-    std::string title_;
-    std::string format_;
-    int pattern_count_;
-    int channel_count_;
-    int instrument_count_;
-    int sample_count_;
-    std::vector<std::string> instruments_;
-    std::vector<std::string> samples_;
-    std::string comment_;
+    std::unique_ptr<openmpt_module, decltype(openmpt_module_destroy)&> m_mod;
+    int m_duration;
+    std::string m_title;
+    std::string m_format;
+    int m_pattern_count;
+    int m_channel_count;
+    std::vector<std::string> m_instruments;
+    std::vector<std::string> m_samples;
+    std::string m_comment;
 };
 
 #endif
